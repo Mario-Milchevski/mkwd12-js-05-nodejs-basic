@@ -1,25 +1,13 @@
 import express from "express";
 import productSession from "../sessions/product.session.js";
 import authSession from "../sessions/auth.session.js";
+import validateAuthSession from "../middleware/auth-session.middleware.js";
 
 const productRouter = express.Router();
 
 productRouter.get("/", productSession, (req, res) => {
   req.session.greetings = "Hello world!";
   res.send("<h1>Default page</h1>");
-});
-
-productRouter.get("/products", productSession, (req, res) => {
-  const session = req.session;
-  console.log("SESSION", session);
-
-  console.log(session.greetings);
-
-  const products = [
-    { id: "1", name: "iphone 13 pro", price: 800 },
-    { id: "2", name: "smart watch", price: 250 },
-  ];
-  res.send(products);
 });
 
 productRouter.post("/login", authSession, (req, res) => {
@@ -35,16 +23,30 @@ productRouter.post("/login", authSession, (req, res) => {
       user: username,
       isLoggedIn: true,
     };
-    res.status(200).send({ message: "Logged in successfully" });
+    res.status(200).send({ message: "Logged in successfully." });
   } else {
-    res.status(401).send({ message: "Invalid credentials" });
+    res.status(403).send({ message: "Invalid credentials" });
   }
+});
+
+productRouter.get("/products", productSession, (req, res) => {
+  const session = req.session;
+  console.log("SESSION", session);
+
+  console.log(session.greetings);
+
+  const products = [
+    { id: "1", name: "iphone 13 pro", price: 800 },
+    { id: "2", name: "smart watch", price: 250 },
+  ];
+  res.send(products);
 });
 
 productRouter.get(
   "/products-premium",
   authSession,
   productSession,
+  validateAuthSession,
   (req, res) => {
     console.log(req.session);
 
